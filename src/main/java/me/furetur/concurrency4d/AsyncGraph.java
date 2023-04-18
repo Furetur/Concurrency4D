@@ -9,4 +9,5 @@ public interface AsyncGraph extends Graph {
 
     <A, B> AsyncReceiveChannel<Either<A, B>> select(ReceiveChannel<A> a, ReceiveChannel<B> b);
     <T> AsyncReceiveChannel<T> toAsync(ReceiveChannel<T> channel);
+    void coroutine(AsyncCoroutine coroutine);
 }

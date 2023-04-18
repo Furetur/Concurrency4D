@@ -50,7 +50,9 @@ final class SyncChannelImpl<T> implements InternalChannel<T> {
             lock.lock();
 
             while (data.size() == 0 && !isClosed) {
-                assert sender != null : "There is not sender. The receive() can hang forever";
+                if (sender == null) {
+                    throw new InvalidGraphException("The channel has no sender. This receive() call will block forever.");
+                }
                 schedule(sender);
                 notEmptyOrClosed.await();
             }

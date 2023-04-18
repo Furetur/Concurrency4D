@@ -24,6 +24,7 @@ public class CoCollector<T> extends Coroutine {
         var msg = input.receive();
         while (msg.isValue()) {
             result.addLast(msg.value());
+            System.out.println("collector: collected " + result);
             msg = input.receive();
         }
         System.out.println("collector: close");

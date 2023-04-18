@@ -75,6 +75,7 @@ class AsyncJoin<A, B> implements InternalAsyncReceiveChannel<Pair<A, B>> {
             aChannel.unreceive(Message.value(a));
             bChannel.unreceive(Message.value(b));
         }
+        // we actually don't know which channel is closed, so we cannot unreceive
     }
 
     @Override

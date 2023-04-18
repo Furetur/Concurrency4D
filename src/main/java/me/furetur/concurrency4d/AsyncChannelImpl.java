@@ -47,7 +47,9 @@ class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
             setUpBridgeIfNeeded();
 
             while (data.size() == 0 && !isClosed()) {
-                assert !isSendBridge() : "The channel has no sender coroutines. This receive() block forever";
+                if (isSendBridge()) {
+                    throw new InvalidGraphException("The channel has no sender. This receive() call will block forever.");
+                }
                 scheduleSenders();
                 notEmptyOrClosed.await();
             }
@@ -93,6 +95,8 @@ class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
 
             if (message.isValue()) {
                 data.addFirst(message.value());
+            } else {
+                assert isClosed();
             }
         } finally {
             lock.unlock();
@@ -111,7 +115,6 @@ class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
                     data.clear();
                     setClosed();
                 }
-
             }
         } finally {
             lock.unlock();
@@ -206,7 +209,7 @@ class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
                 System.out.println(header + "\tthis is a receive bridge, but the thread is not set up");
             }
         } else {
-            System.out.println(header + "\tscheduling receiver coroutines: " + receivers.toString());
+            System.out.println(header + "\tscheduling receiver coroutines: " + receivers);
             schedule(receivers);
         }
     }

@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
-import java.util.stream.Collectors;
 
 public abstract class AsyncCoroutine {
     private final List<ReceiveChannel<?>> inputs;
@@ -31,10 +30,12 @@ public abstract class AsyncCoroutine {
         var wasNotAlive = isAlive.compareAndSet(false, true);
         if (wasNotAlive) {
             // the coroutine is still NOT ALIVE
-            new Thread(() -> {
+            var t = new Thread(() -> {
                 thread.set(Thread.currentThread());
                 this.run();
-            }).start();
+            });
+            t.setName(this.toString());
+            t.start();
         } else {
             var t = thread.get();
             if (t != null) {

@@ -20,12 +20,14 @@ public class CoMap<T, R> extends Coroutine {
 
     @Override
     protected void run() {
+        var canSend = true;
         var msg = in.receive();
-        while (msg.isValue()) {
+        while (msg.isValue() && canSend) {
             var y = f.apply(msg.value());
-            out.send(y);
+            canSend = out.send(y);
             msg = in.receive();
         }
+        in.cancel();
         out.close();
     }
 }

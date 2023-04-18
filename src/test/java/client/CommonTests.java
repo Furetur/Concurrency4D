@@ -5,6 +5,7 @@ import client.coroutines.CoCollector;
 import client.coroutines.CoMap;
 import client.coroutines.CoRange;
 import me.furetur.concurrency4d.Graph;
+import me.furetur.concurrency4d.InvalidGraphException;
 import me.furetur.concurrency4d.data.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -17,11 +18,11 @@ import java.util.stream.LongStream;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Disabled
-public abstract class CommonTests {
+public abstract class CommonTests<T extends Graph> {
 
-    protected Graph graph;
+    protected T graph;
 
-    abstract protected Graph createGraph();
+    abstract protected T createGraph();
 
     @BeforeEach
     void setUp() {
@@ -202,5 +203,41 @@ public abstract class CommonTests {
                 LongStream.range(0, 10).mapToObj(i -> new Pair<>(new Pair<>(i, i), i)).collect(Collectors.toList()),
                 list
         );
+    }
+
+    @Test
+    void sendIntoClosedChannelDoesNotBlock() {
+        var chan = graph.channel();
+        graph.build();
+
+        chan.close();
+        chan.send(1);
+    }
+
+    @Test
+    void closeReturnsTrue() {
+        var chan = graph.channel();
+        graph.build();
+
+        var ok = chan.close();
+        assertTrue(ok);
+    }
+
+    @Test
+    void secondCloseReturnsTrue() {
+        var chan = graph.channel();
+        graph.build();
+
+        chan.close();
+        var ok = chan.close();
+        assertFalse(ok);
+    }
+
+    @Test
+    void receiveOfAChannelWithoutSenderThrows() {
+        var chan = graph.channel();
+        graph.build();
+
+        assertThrows(InvalidGraphException.class, chan::receive);
     }
 }

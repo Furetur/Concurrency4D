@@ -40,6 +40,7 @@ public class AsyncGraphImpl implements AsyncGraph {
         return new AsyncSelect<>((InternalAsyncReceiveChannel<A>) a, (InternalAsyncReceiveChannel<B>) b);
     }
 
+    @Override
     public void coroutine(AsyncCoroutine coroutine) {
         coroutines.push(coroutine);
     }
@@ -76,6 +77,7 @@ public class AsyncGraphImpl implements AsyncGraph {
             var msg = in.receive();
             while (msg.isValue()) {
                 out.send(msg.value());
+                msg = in.receive();
             }
             out.close();
         }

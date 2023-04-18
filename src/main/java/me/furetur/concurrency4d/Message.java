@@ -1,7 +1,6 @@
 package me.furetur.concurrency4d;
 
-import me.furetur.concurrency4d.data.Pair;
-
+import java.util.Objects;
 import java.util.function.Function;
 
 public class Message<T> {
@@ -14,8 +13,7 @@ public class Message<T> {
     }
     
     static <T> Message<T> value(T t) {
-        assert t != null;
-        return new Message<>(t);
+        return new Message<>(Objects.requireNonNull(t));
     }
     
     static <T> Message<T> close() {

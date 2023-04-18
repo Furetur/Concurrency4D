@@ -7,10 +7,10 @@ import java.util.List;
 
 public class CoCancellable extends Coroutine {
 
-    private static long MAX_COUNT = 100;
+    public static final long MAX_COUNT = 100;
 
-    private SendChannel<Boolean> out;
-    private SendChannel<Long> quit;
+    private final SendChannel<Boolean> out;
+    private final SendChannel<Long> quit;
 
     public CoCancellable(SendChannel<Boolean> out, SendChannel<Long> quit) {
         super(List.of(), List.of(out, quit));

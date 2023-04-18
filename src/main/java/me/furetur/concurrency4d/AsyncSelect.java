@@ -24,10 +24,35 @@ class AsyncSelect<A, B> implements InternalAsyncReceiveChannel<Either<A, B>> {
         var a = aChannel.tryReceive();
         if (a.isPresent()) {
             var aMsg = a.get();
-            return Optional.of(aMsg.map(Either.Left::new));
-        } else {
+            if (aMsg.isValue()) {
+                // if A is actually a value, we instantly return it
+                return Optional.of(Message.value(new Either.Left<>(aMsg.value())));
+            }
+            // A is CLOSE
+            // unreceive to run assertions
+            aChannel.unreceive(aMsg);
             var b = bChannel.tryReceive();
+            // select (close, null) = null
+            // select (close, close) = close
             return b.map(bMsg -> bMsg.map(Either.Right::new));
+        } else {
+            // A is null. We decide based only on B
+            // However, if B is CLOSE it should not be returned
+            // select (null, close) = null
+            var b = bChannel.tryReceive();
+            if (b.isPresent()) {
+                var bMsg = b.get();
+                if (bMsg.isValue()) {
+                    return Optional.of(Message.value(new Either.Right<>(bMsg.value())));
+                } else {
+                    // run assertions
+                    bChannel.unreceive(bMsg);
+                    // see above
+                    return Optional.empty();
+                }
+            } else {
+                return Optional.empty();
+            }
         }
     }
 
@@ -40,11 +65,17 @@ class AsyncSelect<A, B> implements InternalAsyncReceiveChannel<Either<A, B>> {
     public void unreceive(Message<Either<A, B>> message) {
         if (message.isValue()) {
             var either = message.value();
-            if (either instanceof Either.Left<A,B> l) {
+            if (either instanceof Either.Left<A, B> l) {
                 aChannel.unreceive(Message.value(l.value()));
-            } else if (either instanceof Either.Right<A,B> r) {
+            } else {
+                var r = (Either.Right<A, B>) either;
                 bChannel.unreceive(Message.value(r.value()));
             }
+        } else {
+            // select is closed iff both inputs are closed
+            // this should execute a couple of assertions
+            aChannel.unreceive(Message.close());
+            bChannel.unreceive(Message.close());
         }
     }
 

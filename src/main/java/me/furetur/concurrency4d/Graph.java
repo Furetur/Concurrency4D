@@ -4,7 +4,7 @@ import me.furetur.concurrency4d.data.Pair;
 
 public interface Graph {
 
-    public static Graph create() {
+    static Graph create() {
         return new SyncGraphImpl();
     }
 

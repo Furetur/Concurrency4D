@@ -10,7 +10,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class SyncTest extends CommonTests {
+public class SyncTest extends CommonTests<Graph> {
     @Override
     protected Graph createGraph() {
         return Graph.create();
@@ -44,4 +44,14 @@ public class SyncTest extends CommonTests {
         assertThrows(ConstraintViolatedException.class, graph::build);
     }
 
+    @Test
+    void sendIntoClosedFullChannelDoesNotBlock() {
+        var chan = graph.channel();
+        graph.build();
+
+        chan.send(1);
+        // not the channel is full
+        // however, this close should not block
+        chan.close();
+    }
 }
