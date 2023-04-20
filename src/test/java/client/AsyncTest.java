@@ -5,6 +5,7 @@ import me.furetur.concurrency4d.AsyncGraph;
 import me.furetur.concurrency4d.Graph;
 import me.furetur.concurrency4d.data.Either;
 import me.furetur.concurrency4d.data.Pair;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -345,5 +346,27 @@ public class AsyncTest extends CommonTests<AsyncGraph> {
         graph.build();
 
         assertEquals(new Either.Left<>(0L), select.receive().value());
+    }
+
+    @RepeatedTest(1000)
+    void joinRangesViceVersa() {
+        var range1 = graph.<Long>channel();
+        graph.coroutine(new CoRange(range1, 1));
+
+        var range2 = graph.<Long>channel();
+        graph.coroutine(new CoRange(range2, 0));
+
+        var mapped = graph.<Long>channel();
+        graph.coroutine(new CoMap<>(i -> i * i, range2, mapped));
+
+        var res = graph.join(mapped, range1);
+
+        graph.build();
+
+        var msg = res.receive();
+        while (msg.isValue()) {
+            msg = res.receive();
+            System.out.println("RECEIVED " + msg);
+        }
     }
 }
