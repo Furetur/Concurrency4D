@@ -57,5 +57,14 @@ public class SyncTest extends CommonTests<Graph> {
         chan.close();
     }
 
+    @Test
+    void doesNotBlockOnFullButClosedChannel() {
+        var chan = graph.channel();
+        graph.build();
 
+        chan.send(1);
+        chan.close();
+        var wasOpen = chan.send(2); // should not block
+        assertFalse(wasOpen);
+    }
 }

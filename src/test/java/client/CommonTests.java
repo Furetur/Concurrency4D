@@ -272,4 +272,24 @@ public abstract class CommonTests<T extends Graph> {
         var ok = chan.close();
         assertFalse(ok);
     }
+
+    @Test
+    void joinCancelsOneChannelIfOtherGetsClosed() {
+        var close = graph.channel();
+
+        var shouldBeCancelled = graph.<Boolean>channel();
+        var count = graph.<Long>channel();
+        graph.coroutine(new CoCancellable(shouldBeCancelled, count));
+
+        var join = graph.join(close, shouldBeCancelled);
+
+        graph.build();
+
+        // we close 'close'
+        // join(close, any channel) = close
+        // therefore join should automatically cancel the second channel
+        close.close();
+        assertFalse(join.receive().isValue());
+        assertEquals(0L, count.receive().value());
+    }
 }

@@ -40,6 +40,9 @@ class AsyncJoin<A, B> implements InternalAsyncReceiveChannel<Pair<A, B>> {
                 // we roll it back
                 a.ifPresent(aChannel::unreceive);
                 b.ifPresent(bChannel::unreceive);
+                // and auto-cancel the channels
+                aChannel.cancel();
+                bChannel.cancel();
             }
             return Optional.of(msg);
         } else if (a.isPresent()){
@@ -48,6 +51,7 @@ class AsyncJoin<A, B> implements InternalAsyncReceiveChannel<Pair<A, B>> {
                 // rollback
                 aChannel.unreceive(aMsg);
             } else {
+                bChannel.cancel();
                 return Optional.of(Message.close());
             }
         } else if (b.isPresent()) {
@@ -56,6 +60,7 @@ class AsyncJoin<A, B> implements InternalAsyncReceiveChannel<Pair<A, B>> {
                 // rollback
                 bChannel.unreceive(bMsg);
             } else {
+                aChannel.cancel();
                 return Optional.of(Message.close());
             }
         }

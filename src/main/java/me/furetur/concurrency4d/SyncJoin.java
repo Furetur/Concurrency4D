@@ -35,7 +35,13 @@ class SyncJoin<A, B> implements InternalReceiveChannel<Pair<A, B>> {
             b = bChannel.receive();
             if (b.isValue()) a = aChannel.receive();
         }
-        return Utils.joinMessages(a, b);
+        var result = Utils.joinMessages(a, b);
+        if (!result.isValue()) {
+            // automatically cancel both channels
+            aChannel.cancel();
+            bChannel.cancel();
+        }
+        return result;
     }
 
     @Override
