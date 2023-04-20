@@ -1,9 +1,6 @@
 package client;
 
-import client.coroutines.CoCancellable;
-import client.coroutines.CoCollector;
-import client.coroutines.CoMap;
-import client.coroutines.CoRange;
+import client.coroutines.*;
 import me.furetur.concurrency4d.Graph;
 import me.furetur.concurrency4d.InvalidGraphException;
 import me.furetur.concurrency4d.data.Pair;
@@ -163,6 +160,19 @@ public abstract class CommonTests<T extends Graph> {
     }
 
     @Test
+    void doubleCancel() {
+        var cancel = graph.<Boolean>channel();
+        var count = graph.<Long>channel();
+        graph.coroutine(new CoCancellable(cancel, count));
+
+        graph.build();
+
+        cancel.cancel();
+        cancel.cancel();
+        assertEquals(0, count.receive().value());
+    }
+
+    @Test
     void shouldCancelBoth() {
         var cancel1 = graph.<Boolean>channel();
         var count1 = graph.<Long>channel();
@@ -179,6 +189,36 @@ public abstract class CommonTests<T extends Graph> {
 
         cancel.cancel();
         assertEquals(new Pair<>(0L, 0L), count.receive().value());
+    }
+
+    @Test
+    void cancelSendBridge() {
+        var in = graph.<Long>channel();
+        var out = graph.<Long>channel();
+        graph.coroutine(new CoBreaker<>(100L, in, out));
+        graph.build();
+
+        // schedule coroutines
+        in.send(1L);
+        out.receive();
+        // break
+        in.send(100L);
+        var msg = out.receive();
+        assertFalse(msg.isValue());
+        // the in channel should be closed too
+        var isOpen = in.send(1L);
+        assertFalse(isOpen);
+    }
+
+    @Test
+    void graphWithInAndOut() {
+        var in = graph.<Long>channel();
+        var out = graph.<Long>channel();
+        graph.coroutine(new CoMap<>(i -> i * i, in, out));
+        graph.build();
+
+        in.send(12L);
+        assertEquals(144L, out.receive().value());
     }
 
     @Test
@@ -231,13 +271,5 @@ public abstract class CommonTests<T extends Graph> {
         chan.close();
         var ok = chan.close();
         assertFalse(ok);
-    }
-
-    @Test
-    void receiveOfAChannelWithoutSenderThrows() {
-        var chan = graph.channel();
-        graph.build();
-
-        assertThrows(InvalidGraphException.class, chan::receive);
     }
 }

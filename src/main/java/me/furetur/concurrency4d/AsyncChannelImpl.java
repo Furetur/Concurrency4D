@@ -47,9 +47,6 @@ class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
             setUpBridgeIfNeeded();
 
             while (data.size() == 0 && !isClosed()) {
-                if (isSendBridge()) {
-                    throw new InvalidGraphException("The channel has no sender. This receive() call will block forever.");
-                }
                 scheduleSenders();
                 notEmptyOrClosed.await();
             }

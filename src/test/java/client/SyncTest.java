@@ -1,6 +1,7 @@
 package client;
 
 import client.coroutines.CoCollector;
+import client.coroutines.CoMap;
 import client.coroutines.CoRange;
 import me.furetur.concurrency4d.ConstraintViolatedException;
 import me.furetur.concurrency4d.Graph;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SyncTest extends CommonTests<Graph> {
@@ -54,4 +56,6 @@ public class SyncTest extends CommonTests<Graph> {
         // however, this close should not block
         chan.close();
     }
+
+
 }

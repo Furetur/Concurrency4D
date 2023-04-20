@@ -1,21 +1,21 @@
 package client.coroutines;
 
-import me.furetur.concurrency4d.*;
+import me.furetur.concurrency4d.Coroutine;
+import me.furetur.concurrency4d.ReceiveChannel;
+import me.furetur.concurrency4d.SendChannel;
 
 import java.util.List;
-import java.util.function.Function;
 
-public class CoMap<T, R> extends Coroutine {
-
-    Function<T, R> f;
+public class CoBreaker<T> extends Coroutine {
     ReceiveChannel<T> in;
-    SendChannel<R> out;
+    SendChannel<T> out;
+    T breaker;
 
-    public CoMap(Function<T, R> f, ReceiveChannel<T> in, SendChannel<R> out) {
+    public CoBreaker(T breaker, ReceiveChannel<T> in, SendChannel<T> out) {
         super(List.of(in), List.of(out));
-        this.f = f;
         this.in = in;
         this.out = out;
+        this.breaker = breaker;
     }
 
     @Override
@@ -23,8 +23,9 @@ public class CoMap<T, R> extends Coroutine {
         var canSend = true;
         var msg = in.receive();
         while (msg.isValue() && canSend) {
-            var y = f.apply(msg.value());
-            canSend = out.send(y);
+            if (msg.value() == breaker) break;
+
+            canSend = out.send(msg.value());
             if (canSend) msg = in.receive();
         }
         in.cancel();

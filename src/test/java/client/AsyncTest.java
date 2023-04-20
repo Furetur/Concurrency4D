@@ -58,6 +58,21 @@ public class AsyncTest extends CommonTests<AsyncGraph> {
     }
 
     @Test
+    void selectDoesNotPromoteRightCloseWhenLeftIsEmpty() {
+        var chan1 = graph.<Boolean>channel();
+        var chan2 = graph.channel();
+        graph.coroutine(new CoAsyncInterval(chan1, 10L));
+        var select = graph.select(chan1, chan2);
+
+        graph.build();
+
+        chan2.close();
+
+        var x = select.receive();
+        assertTrue(x.isValue());
+    }
+
+    @Test
     void selectOfCloseCloseIsClose() {
         var chan1 = graph.channel();
         var chan2 = graph.channel();
