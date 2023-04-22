@@ -4,19 +4,17 @@ import client.coroutines.*;
 import me.furetur.concurrency4d.*;
 import me.furetur.concurrency4d.data.Either;
 import me.furetur.concurrency4d.data.Pair;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Timeout(value = 10, unit = TimeUnit.SECONDS)
+@Timeout(value = 10)
 public class AsyncTest extends CommonTests<AsyncGraph> {
     @Override
     protected AsyncGraph createGraph() {

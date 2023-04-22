@@ -2,7 +2,6 @@ package client;
 
 import client.coroutines.*;
 import me.furetur.concurrency4d.Graph;
-import me.furetur.concurrency4d.InvalidGraphException;
 import me.furetur.concurrency4d.Log;
 import me.furetur.concurrency4d.data.Pair;
 import org.junit.jupiter.api.*;

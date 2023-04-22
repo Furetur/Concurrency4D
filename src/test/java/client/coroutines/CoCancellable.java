@@ -14,7 +14,7 @@ public class CoCancellable extends Coroutine {
     private final SendChannel<Boolean> out;
     private final SendChannel<Long> quit;
 
-    private Log log = new Log(this);
+    private final Log log = new Log(this);
 
     public CoCancellable(SendChannel<Boolean> out, SendChannel<Long> quit) {
         super(List.of(), List.of(out, quit));
