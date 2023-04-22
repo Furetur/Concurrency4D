@@ -9,6 +9,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Setup Java Development Kits built by Oracle
+        uses: oracle-actions/setup-java@v1.3.1
+
       # Cache Gradle dependencies
       # Cache Gradle Wrapper
       - name: Cache Gradle dependencies
