@@ -8,8 +8,6 @@ class AsyncJoin<A, B> implements InternalAsyncReceiveChannel<Pair<A, B>> {
     private final InternalAsyncReceiveChannel<A> aChannel;
     private final InternalAsyncReceiveChannel<B> bChannel;
 
-    private final Log log = new Log(this);
-
     AsyncJoin(InternalAsyncReceiveChannel<A> aChannel, InternalAsyncReceiveChannel<B> bChannel) {
         this.aChannel = aChannel;
         this.bChannel = bChannel;
