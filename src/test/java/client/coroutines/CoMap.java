@@ -11,6 +11,8 @@ public class CoMap<T, R> extends Coroutine {
     ReceiveChannel<T> in;
     SendChannel<R> out;
 
+    Log log = new Log(this);
+
     public CoMap(Function<T, R> f, ReceiveChannel<T> in, SendChannel<R> out) {
         super(List.of(in), List.of(out));
         this.f = f;
@@ -23,10 +25,13 @@ public class CoMap<T, R> extends Coroutine {
         var canSend = true;
         var msg = in.receive();
         while (msg.isValue() && canSend) {
+            Message<T> finalMsg = msg;
+            log.debug(() -> "received " + finalMsg);
             var y = f.apply(msg.value());
             canSend = out.send(y);
             if (canSend) msg = in.receive();
         }
+        log.debug("closing " + out);
         in.cancel();
         out.close();
     }

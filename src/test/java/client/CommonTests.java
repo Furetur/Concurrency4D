@@ -3,10 +3,9 @@ package client;
 import client.coroutines.*;
 import me.furetur.concurrency4d.Graph;
 import me.furetur.concurrency4d.InvalidGraphException;
+import me.furetur.concurrency4d.Log;
 import me.furetur.concurrency4d.data.Pair;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,11 +18,18 @@ public abstract class CommonTests<T extends Graph> {
 
     protected T graph;
 
+    protected Log log = new Log(this);
+
     abstract protected T createGraph();
 
     @BeforeEach
     void setUp() {
         graph = createGraph();
+    }
+
+    @AfterEach
+    void tearDown() {
+        Log.flush();
     }
 
     @Test
@@ -93,7 +99,7 @@ public abstract class CommonTests<T extends Graph> {
         );
     }
 
-    @Test
+    @RepeatedTest(100)
     void joinRangesViceVersa() {
         var range1 = graph.<Long>channel();
         graph.coroutine(new CoRange(range1, 10));

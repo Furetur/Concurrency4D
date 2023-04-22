@@ -28,9 +28,14 @@ tasks.withType(JavaExec) {
 }
 
 test {
+    environment "DEBUG", "true"
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
 }
 
 jacocoTestReport {
     dependsOn test
+    jacoco {
+
+    }
 }

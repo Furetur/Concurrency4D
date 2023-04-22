@@ -11,14 +11,20 @@ import java.util.concurrent.locks.LockSupport;
 class Utils {
     private static final AtomicLong nextId = new AtomicLong(0);
 
+    private static Log log = new Log(Utils.class);
+
     static <T> Message<T> keepTryReceiving(InternalAsyncReceiveChannel<T> channel) {
+        log.debug("TRANSACTION receive() START");
+        log.debug("TRANSACTION ATTEMPT");
         var msg = channel.tryReceive();
         while (msg.isEmpty()) {
-            System.out.println("transaction: parking on " + channel + ", thread: " + Thread.currentThread());
-            LockSupport.park();
+            log.debug(() -> "TRANSACTION parking on " + channel);
+            LockSupport.park(channel);
+            log.debug("TRANSACTION ATTEMPT");
             msg = channel.tryReceive();
         }
-        System.out.println("transaction: tryReceive succeeded, no need to park on" + channel);
+        Optional<Message<T>> finalMsg = msg;
+        log.debug(() -> "TRANSACTION receive() END: " + finalMsg);
         return msg.get();
     }
 

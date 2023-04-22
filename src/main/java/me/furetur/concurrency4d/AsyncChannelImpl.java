@@ -23,6 +23,8 @@ class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
     private final Lock lock = new ReentrantLock();
     private final Condition notEmptyOrClosed = lock.newCondition();
 
+    private Log log = new Log(this);
+
     @Override
     public long id() {
         return 0;
@@ -35,8 +37,8 @@ class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
 
     private void setUpBridgeIfNeeded() {
         if (isReceiveBridge() && receiveBridgeThread == null) {
-            System.out.println("set up bridge on " + this);
             receiveBridgeThread = Thread.currentThread();
+            log.debug("Set up receive bridge");
         }
     }
 
@@ -68,6 +70,7 @@ class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
     public Optional<Message<T>> tryReceive() {
         try {
             lock.lock();
+            log.debug("tryReceive lock acquired");
 
             setUpBridgeIfNeeded();
 
@@ -81,6 +84,7 @@ class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
                 return Optional.empty();
             }
         } finally {
+            log.debug("tryReceive lock released");
             lock.unlock();
         }
     }
@@ -143,6 +147,7 @@ class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
     public boolean close() {
         try {
             lock.lock();
+            log.debug("close lock acquired");
 
             if (isClosed()) {
                 return false;
@@ -155,6 +160,7 @@ class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
                 return true;
             }
         } finally {
+            log.debug("close lock released");
             lock.unlock();
         }
     }
@@ -196,23 +202,23 @@ class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
     }
 
     private void scheduleReceivers() {
-        var header = "scheduling receivers of " + this + "\n";
+        var header = "scheduling receivers of " + this + ": " + receivers + "\n";
         notEmptyOrClosed.signalAll();
         if (isReceiveBridge()) {
             if (receiveBridgeThread != null) {
-                System.out.println(header + "\tunparking bridge");
+                log.debug(() -> "Scheduling receivers: bridge " + receiveBridgeThread);
                 LockSupport.unpark(receiveBridgeThread);
             } else {
-                System.out.println(header + "\tthis is a receive bridge, but the thread is not set up");
+                log.debug("Scheduling receivers: bridge but the thread is not set up yet...");
             }
         } else {
-            System.out.println(header + "\tscheduling receiver coroutines: " + receivers);
+            log.debug(() -> "Scheduling receivers: coroutines " + receivers);
             schedule(receivers);
         }
     }
 
     private void scheduleSenders() {
-        System.out.println("scheduling senders");
+        log.debug(() -> "Scheduling senders: coroutines " + senders);
         schedule(senders);
     }
 

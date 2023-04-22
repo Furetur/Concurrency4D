@@ -1,14 +1,16 @@
 package client;
 
 import client.coroutines.*;
-import me.furetur.concurrency4d.AsyncGraph;
-import me.furetur.concurrency4d.Graph;
+import me.furetur.concurrency4d.*;
 import me.furetur.concurrency4d.data.Either;
 import me.furetur.concurrency4d.data.Pair;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
@@ -349,6 +351,7 @@ public class AsyncTest extends CommonTests<AsyncGraph> {
     }
 
     @RepeatedTest(1000)
+    @Timeout(value = 10, unit = TimeUnit.SECONDS)
     void joinRangesViceVersa() {
         var range1 = graph.<Long>channel();
         graph.coroutine(new CoRange(range1, 1));
@@ -363,10 +366,6 @@ public class AsyncTest extends CommonTests<AsyncGraph> {
 
         graph.build();
 
-        var msg = res.receive();
-        while (msg.isValue()) {
-            msg = res.receive();
-            System.out.println("RECEIVED " + msg);
-        }
+        assertFalse(res.receive().isValue());
     }
 }
