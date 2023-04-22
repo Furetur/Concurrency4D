@@ -28,7 +28,9 @@ tasks.withType(JavaExec) {
 }
 
 test {
-    environment "DEBUG", "true"
+    if (!System.getenv().containsKey("DEBUG")) {
+        environment "DEBUG", "true"
+    }
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 }

@@ -16,6 +16,7 @@ import java.util.stream.LongStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Timeout(value = 10, unit = TimeUnit.SECONDS)
 public class AsyncTest extends CommonTests<AsyncGraph> {
     @Override
     protected AsyncGraph createGraph() {
@@ -351,7 +352,6 @@ public class AsyncTest extends CommonTests<AsyncGraph> {
     }
 
     @RepeatedTest(1000)
-    @Timeout(value = 10, unit = TimeUnit.SECONDS)
     void joinRangesViceVersa() {
         var range1 = graph.<Long>channel();
         graph.coroutine(new CoRange(range1, 1));

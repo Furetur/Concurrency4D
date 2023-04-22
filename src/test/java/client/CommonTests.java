@@ -28,8 +28,11 @@ public abstract class CommonTests<T extends Graph> {
     }
 
     @AfterEach
-    void tearDown() {
+    void tearDown(TestInfo testInfo) {
+        System.out.println("==================== TEST START " + testInfo.getDisplayName() + " ====================");
         Log.flush();
+        System.out.println("==================== TEST END " + testInfo.getDisplayName() + " ====================");
+
     }
 
     @Test
@@ -50,7 +53,7 @@ public abstract class CommonTests<T extends Graph> {
         );
     }
 
-    @Test
+    @RepeatedTest(1000)
     void joinRanges() {
         var range1 = graph.<Long>channel();
         graph.coroutine(new CoRange(range1, 10));
@@ -76,7 +79,7 @@ public abstract class CommonTests<T extends Graph> {
         );
     }
 
-    @Test
+    @RepeatedTest(100)
     void simpleJoin() {
         var range1 = graph.<Long>channel();
         graph.coroutine(new CoRange(range1, 10));

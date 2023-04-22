@@ -3,6 +3,8 @@ package client.coroutines;
 import me.furetur.concurrency4d.Coroutine;
 import me.furetur.concurrency4d.ReceiveChannel;
 import me.furetur.concurrency4d.SendChannel;
+import me.furetur.concurrency4d.Log;
+
 
 import java.util.LinkedList;
 import java.util.List;
@@ -10,6 +12,8 @@ import java.util.List;
 public class CoCollector<T> extends Coroutine {
     ReceiveChannel<T> input;
     SendChannel<List<T>> output;
+
+    Log log = new Log(this);
 
     public CoCollector(ReceiveChannel<T> input, SendChannel<List<T>> output) {
         super(List.of(input), List.of(output));
@@ -24,10 +28,10 @@ public class CoCollector<T> extends Coroutine {
         var msg = input.receive();
         while (msg.isValue()) {
             result.addLast(msg.value());
-            System.out.println("collector: collected " + result);
+            log.debug(() -> "collected " + result);
             msg = input.receive();
         }
-        System.out.println("collector: close");
+        log.debug(() -> "closing " + output);
         output.send(result);
     }
 }

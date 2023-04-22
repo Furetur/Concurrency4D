@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 
 @CoverageExcludeGenerated
 public class Log {
-    private static final boolean IS_DEBUG = System.getenv().containsKey("DEBUG");
+    private static final boolean IS_DEBUG = System.getenv().getOrDefault("DEBUG", "false").equals("true");
     private static final LinkedBlockingDeque<String> log = new LinkedBlockingDeque<>();
 
     private final Object caller;
