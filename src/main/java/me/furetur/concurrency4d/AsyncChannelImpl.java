@@ -1,5 +1,6 @@
 package me.furetur.concurrency4d;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -8,6 +9,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
 
@@ -202,11 +204,11 @@ class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
     }
 
     private void scheduleReceivers() {
-        var header = "scheduling receivers of " + this + ": " + receivers + "\n";
         notEmptyOrClosed.signalAll();
         if (isReceiveBridge()) {
             if (receiveBridgeThread != null) {
-                log.debug(() -> "Scheduling receivers: bridge " + receiveBridgeThread);
+                var stack = Arrays.stream(receiveBridgeThread.getStackTrace()).map(x -> "\t" + x + "\n").collect(Collectors.joining());
+                log.debug(() -> "Scheduling receivers: bridge " + receiveBridgeThread + " " + receiveBridgeThread.getState() + ", STACK:\n" + stack);
                 LockSupport.unpark(receiveBridgeThread);
             } else {
                 log.debug("Scheduling receivers: bridge but the thread is not set up yet...");

@@ -8,6 +8,8 @@ class AsyncJoin<A, B> implements InternalAsyncReceiveChannel<Pair<A, B>> {
     private final InternalAsyncReceiveChannel<A> aChannel;
     private final InternalAsyncReceiveChannel<B> bChannel;
 
+    private Log log = new Log(this);
+
     AsyncJoin(InternalAsyncReceiveChannel<A> aChannel, InternalAsyncReceiveChannel<B> bChannel) {
         this.aChannel = aChannel;
         this.bChannel = bChannel;
@@ -26,7 +28,9 @@ class AsyncJoin<A, B> implements InternalAsyncReceiveChannel<Pair<A, B>> {
 
     @Override
     public Optional<Message<Pair<A, B>>> tryReceive() {
-        return tryReceiveHelper(null, null);
+        var res = tryReceiveHelper(null, null);
+        log.debug("AsyncJoin.tryReceive returns " + res);
+        return res;
     }
 
     private Optional<Message<Pair<A, B>>> tryReceiveHelper(Message<A> msgA, Message<B> msgB) {
