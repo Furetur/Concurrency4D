@@ -1,4 +1,17 @@
 # Concurrency4D
+
+## Summary
+
+Current approaches to multi-threaded programming in modern languages such as async/await, coroutines and channels, actors, MapReduce, and threads do not protect the user from the non-determinism that can arise from multi-threading. This approach aims to solve this issue.
+
+## How to use
+
+At this moment, there are several ways how you can use our library in your project:
+
+1. Add this git repository as a dependency to your Gradle build with the `sourceControl` feature.
+2. Download the library and add it to your classpath manually. Java 19 is required.
+3. (Coming soon) Dependency from the Maven Repository,
+
 ## Tutorial
 
 In this section, a brief introduction to the library API is presented, accompanied by examples of code. 
