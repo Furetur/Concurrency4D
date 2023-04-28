@@ -2,7 +2,6 @@ package client;
 
 import client.coroutines.*;
 import me.furetur.concurrency4d.Graph;
-import me.furetur.concurrency4d.Log;
 import me.furetur.concurrency4d.data.Pair;
 import org.junit.jupiter.api.*;
 
@@ -13,25 +12,15 @@ import java.util.stream.LongStream;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Disabled
-public abstract class CommonTests<T extends Graph> {
+public abstract class CommonTests<T extends Graph> extends CommonLogging {
 
     protected T graph;
-
-    protected Log log = new Log(this);
 
     abstract protected T createGraph();
 
     @BeforeEach
     void setUp() {
         graph = createGraph();
-    }
-
-    @AfterEach
-    void tearDown(TestInfo testInfo) {
-        System.out.println("==================== TEST START " + testInfo.getDisplayName() + " ====================");
-        Log.flush();
-        System.out.println("==================== TEST END " + testInfo.getDisplayName() + " ====================");
-
     }
 
     @Test

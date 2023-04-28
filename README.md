@@ -2,7 +2,7 @@
 
 ## Summary
 
-Current approaches to multi-threaded programming in modern languages such as async/await, coroutines and channels, actors, MapReduce, and threads do not protect the user from the non-determinism that can arise from multi-threading. This approach aims to solve this issue.
+Current approaches to multithreaded programming in modern languages such as async/await, coroutines and channels, actors, MapReduce, and threads do not protect the user from the non-determinism that can arise from multi-threading. This approach aims to solve this issue.
 
 ## How to use
 

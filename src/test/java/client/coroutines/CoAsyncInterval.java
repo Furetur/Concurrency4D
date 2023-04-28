@@ -1,15 +1,14 @@
 package client.coroutines;
 
 import me.furetur.concurrency4d.AsyncCoroutine;
-import me.furetur.concurrency4d.ReceiveChannel;
 import me.furetur.concurrency4d.SendChannel;
 
 import java.util.List;
 
 public class CoAsyncInterval extends AsyncCoroutine {
     
-    private long interval;
-    private SendChannel<Boolean> channel;
+    private final long interval;
+    private final SendChannel<Boolean> channel;
     
     public CoAsyncInterval(SendChannel<Boolean> channel, long interval) {
         super(List.of(), List.of(channel));

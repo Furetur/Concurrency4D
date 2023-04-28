@@ -11,7 +11,7 @@ public class CoRange extends Coroutine {
     private final long from;
     private final long to;
 
-    private Log log = new Log(this);
+    private final Log log = new Log(this);
 
     public CoRange(SendChannel<Long> out, long from, long to) {
         super(List.of(), List.of(out));

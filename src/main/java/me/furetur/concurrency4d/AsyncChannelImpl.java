@@ -1,15 +1,12 @@
 package me.furetur.concurrency4d;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
 
@@ -20,12 +17,12 @@ class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
 
     private final List<AsyncCoroutine> senders = new CopyOnWriteArrayList<>();
     private final List<AsyncCoroutine> receivers = new CopyOnWriteArrayList<>();
-    private Thread receiveBridgeThread;
+    private ThreadInfo receiveBridgeThreadInfo;
 
     private final Lock lock = new ReentrantLock();
     private final Condition notEmptyOrClosed = lock.newCondition();
 
-    private Log log = new Log(this);
+    private final Log log = new Log(this);
 
     @Override
     public long id() {
@@ -38,8 +35,8 @@ class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
     }
 
     private void setUpBridgeIfNeeded() {
-        if (isReceiveBridge() && receiveBridgeThread == null) {
-            receiveBridgeThread = Thread.currentThread();
+        if (isReceiveBridge() && receiveBridgeThreadInfo == null) {
+            receiveBridgeThreadInfo = ThreadInfo.currentThreadInfo();
             log.debug("Set up receive bridge");
         }
     }
@@ -206,10 +203,9 @@ class AsyncChannelImpl<T> implements InternalAsyncChannel<T> {
     private void scheduleReceivers() {
         notEmptyOrClosed.signalAll();
         if (isReceiveBridge()) {
-            if (receiveBridgeThread != null) {
-                var stack = Arrays.stream(receiveBridgeThread.getStackTrace()).map(x -> "\t" + x + "\n").collect(Collectors.joining());
-                log.debug(() -> "Scheduling receivers: bridge " + receiveBridgeThread + " " + receiveBridgeThread.getState() + ", STACK:\n" + stack);
-                LockSupport.unpark(receiveBridgeThread);
+            if (receiveBridgeThreadInfo != null) {
+                log.debug(() -> "Scheduling receivers: bridge " + receiveBridgeThreadInfo);
+                receiveBridgeThreadInfo.unpark();
             } else {
                 log.debug("Scheduling receivers: bridge but the thread is not set up yet...");
             }

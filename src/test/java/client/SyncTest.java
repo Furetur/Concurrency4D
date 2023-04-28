@@ -1,7 +1,6 @@
 package client;
 
 import client.coroutines.CoCollector;
-import client.coroutines.CoMap;
 import client.coroutines.CoRange;
 import me.furetur.concurrency4d.ConstraintViolatedException;
 import me.furetur.concurrency4d.Graph;
