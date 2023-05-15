@@ -1,4 +1,5 @@
-# Concurrency4D ![example workflow](https://github.com/Furetur/Concurrency4D/actions/workflows/build.yml/badge.svg)
+# Concurrency4D 
+![Build status](https://github.com/Furetur/Concurrency4D/actions/workflows/build.yml/badge.svg) ![Test coverage](https://raw.githubusercontent.com/Furetur/Concurrency4D/master/.github/badges/jacoco.svg) ![Branch coverage](https://raw.githubusercontent.com/Furetur/Concurrency4D/master/.github/badges/branches.svg)
 
 ## Summary
 
