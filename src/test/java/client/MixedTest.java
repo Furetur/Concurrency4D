@@ -2,10 +2,10 @@ package client;
 
 import client.coroutines.CoCollector;
 import client.coroutines.CoRange;
-import me.furetur.concurrency4d.AsyncGraph;
-import me.furetur.concurrency4d.Graph;
-import me.furetur.concurrency4d.data.Either;
-import me.furetur.concurrency4d.data.Pair;
+import com.github.furetur.concurrency4d.AsyncGraph;
+import com.github.furetur.concurrency4d.Graph;
+import com.github.furetur.concurrency4d.data.Either;
+import com.github.furetur.concurrency4d.data.Pair;
 import client.coroutines.CoAsyncInterval;
 import org.junit.jupiter.api.Test;
 

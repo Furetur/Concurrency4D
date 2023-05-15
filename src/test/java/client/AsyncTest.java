@@ -1,9 +1,9 @@
 package client;
 
 import client.coroutines.*;
-import me.furetur.concurrency4d.*;
-import me.furetur.concurrency4d.data.Either;
-import me.furetur.concurrency4d.data.Pair;
+import com.github.furetur.concurrency4d.AsyncGraph;
+import com.github.furetur.concurrency4d.data.Either;
+import com.github.furetur.concurrency4d.data.Pair;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;

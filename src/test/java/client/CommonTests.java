@@ -1,8 +1,8 @@
 package client;
 
 import client.coroutines.*;
-import me.furetur.concurrency4d.Graph;
-import me.furetur.concurrency4d.data.Pair;
+import com.github.furetur.concurrency4d.Graph;
+import com.github.furetur.concurrency4d.data.Pair;
 import org.junit.jupiter.api.*;
 
 import java.util.List;

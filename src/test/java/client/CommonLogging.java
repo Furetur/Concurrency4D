@@ -1,6 +1,6 @@
 package client;
 
-import me.furetur.concurrency4d.Log;
+import com.github.furetur.concurrency4d.Log;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;

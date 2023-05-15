@@ -2,8 +2,8 @@ package client;
 
 import client.coroutines.CoCollector;
 import client.coroutines.CoRange;
-import me.furetur.concurrency4d.ConstraintViolatedException;
-import me.furetur.concurrency4d.Graph;
+import com.github.furetur.concurrency4d.ConstraintViolatedException;
+import com.github.furetur.concurrency4d.Graph;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

@@ -1,7 +1,7 @@
 package client.coroutines;
 
-import me.furetur.concurrency4d.AsyncCoroutine;
-import me.furetur.concurrency4d.SendChannel;
+import com.github.furetur.concurrency4d.AsyncCoroutine;
+import com.github.furetur.concurrency4d.SendChannel;
 
 import java.util.List;
 
