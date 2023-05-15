@@ -50,6 +50,8 @@ publishing {
             group 'com.github.furetur'
             artifactId = 'concurrency4d'
             version '1.0-SNAPSHOT'
+
+            from components.java
         }
     }
 }
