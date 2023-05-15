@@ -43,3 +43,13 @@ jacocoTestReport {
         csv.required = true
     }
 }
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            group 'com.github.furetur'
+            artifactId = 'concurrency4d'
+            version '1.0-SNAPSHOT'
+        }
+    }
+}
