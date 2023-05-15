@@ -1,6 +1,17 @@
 # Concurrency4D 
 [![](https://jitpack.io/v/Furetur/Concurrency4D.svg)](https://jitpack.io/#Furetur/Concurrency4D) ![Build status](https://github.com/Furetur/Concurrency4D/actions/workflows/build.yml/badge.svg) ![Test coverage](https://raw.githubusercontent.com/Furetur/Concurrency4D/master/.github/badges/jacoco.svg) ![Branch coverage](https://raw.githubusercontent.com/Furetur/Concurrency4D/master/.github/badges/branches.svg)
 
+
+## Table of Contents
+
+1. [Motivation](#motivation)
+2. [Add as a Dependency](#add-as-a-dependency)
+3. [Tutorial](#tutorial)
+   1. [Simple deterministic graphs](#simple-deterministic-graphs)
+   2. [Join: receive from multiple channels](#join--receive-from-multiple-channels)
+   3. [Adding non-determinism](#adding-non-determinism)
+   4. [Select: merge channels](#select--merge-channels)
+
 ## Motivation
 
 * Multithreaded programming is hard!
@@ -122,7 +133,7 @@ In this example, the `receive()` call blocks the current thread and schedules th
 The coroutines are scheduled lazily by receiving and sending values.
 A coroutine is initially run only when it is expected to consume or produce values.
 
-### Transactional algebraic product of channels
+### Join: receive from multiple channels
 
 In many scenarios, coroutines need to receive values from multiple channels concurrently.
 However, the associated complexity is often underestimated.
@@ -220,7 +231,7 @@ Non-deterministic graphs may have deterministic subgraphs.
 This example creates a deterministic subgraph with a `Squares` coroutine and connects it to the non-deterministic `FileReader` coroutine that belongs to the non-deterministic graph.
 By initially using a deterministic graph builder we let the library verify all the constraints and use more performant deterministic channels.
 
-### Non-deterministic algebraic sum of channels
+### Select: merge channels
 
 Suppose a resource is stored at two different locations.  
 The objective is to fetch the resource from both servers simultaneously and return the response that is received first.
