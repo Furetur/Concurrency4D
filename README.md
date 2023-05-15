@@ -5,13 +5,62 @@
 
 Current approaches to multithreaded programming in modern languages such as async/await, coroutines and channels, actors, MapReduce, and threads do not protect the user from the non-determinism that can arise from multi-threading. This approach aims to solve this issue.
 
-## How to use
+## Motivation
 
-At this moment, there are several ways how you can use our library in your project:
+* Multithreaded programming is hard!
+* This is why programming languages implement approaches that simplify multithreaded programming by protecting the user from various multithreaded errors:
+  * async/await, coroutines, actors, asynchronous streams, etc.
+* However, existing approaches do not address one of the principal complexities of multithreading: **non-determinism**.
+  * Non-determinism can _even_ be introduced when rewriting deterministic sequential algorithms with actors or coroutines.
+* Non-determinism increases the complexity of development and testing:
+  * Every bug is harder to reproduce, thus, to debug and fix.
 
-1. Add this git repository as a dependency to your Gradle build with the `sourceControl` feature.
-2. Download the library and add it to your classpath manually. Java 19 is required.
-3. (Coming soon) Dependency from the Maven Repository,
+**Our approach**
+
+* This library offers a way to isolate deterministic code from non-determinism.
+* You can mark the _core logic_ of your application as _deterministic_.
+  * The surrounding non-deterministic code communicates with core logic via channels.
+* The deterministic core can be easily tested separately.
+* Just like async/await lets you isolate core (sync) functions from non-deterministic (async) functions.
+
+
+
+## Add as a Dependency
+
+The library is published via Jitpack. To use it as a dependency in your Gradle project, add the following to the `build.gradle` file:
+
+```groovy
+// Add the Jitpack repository 
+allprojects {
+    repositories {
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+// Add the library as a dependency
+dependencies {
+    // ...
+    implementation 'com.github.Furetur:Concurrency4D:<latest version>'
+}
+
+// Our library uses Java preview features, namely virtual threads.
+// Thus, '--enable-preview' flag is required
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ["--enable-preview"]
+}
+tasks.withType(Test).configureEach {
+    jvmArgs += ["--enable-preview"]
+}
+tasks.withType(JavaExec).configureEach {
+    jvmArgs += ['--enable-preview']
+}
+```
+
+Then, just import it in your Java code as:
+
+```java
+import com.github.furetur.concurrency4d.*;
+```
 
 ## Tutorial
 
