@@ -1,10 +1,6 @@
 # Concurrency4D 
 ![Build status](https://github.com/Furetur/Concurrency4D/actions/workflows/build.yml/badge.svg) ![Test coverage](https://raw.githubusercontent.com/Furetur/Concurrency4D/master/.github/badges/jacoco.svg) ![Branch coverage](https://raw.githubusercontent.com/Furetur/Concurrency4D/master/.github/badges/branches.svg)
 
-## Summary
-
-Current approaches to multithreaded programming in modern languages such as async/await, coroutines and channels, actors, MapReduce, and threads do not protect the user from the non-determinism that can arise from multi-threading. This approach aims to solve this issue.
-
 ## Motivation
 
 * Multithreaded programming is hard!
