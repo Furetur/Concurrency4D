@@ -1,5 +1,5 @@
 jdk:
-  - openjdk20
+  - openjdk19
 before_install:
-  - sdk install java 20.0.1-open
-  - sdk use java 20.0.1-open
+  - sdk install java 19.0.2-open
+  - sdk use java 19.0.2-open
