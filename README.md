@@ -1,4 +1,4 @@
-# Concurrency4D
+# Concurrency4D ![example workflow](https://github.com/Furetur/Concurrency4D/actions/workflows/build.yml/badge.svg)
 
 ## Summary
 

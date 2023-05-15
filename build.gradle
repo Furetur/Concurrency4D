@@ -37,7 +37,8 @@ test {
 
 jacocoTestReport {
     dependsOn test
-    jacoco {
-
+    reports {
+        html.required = true
+        csv.required = true
     }
 }
