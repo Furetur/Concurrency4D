@@ -1,6 +1,11 @@
 package benchmarks;
 
 
+import me.furetur.concurrency4d.Coroutine;
+import me.furetur.concurrency4d.Graph;
+import me.furetur.concurrency4d.ReceiveChannel;
+import me.furetur.concurrency4d.data.Pair;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,16 +29,11 @@ public final class CoroutinesKMeans {
 
     //
 
-    private final ForkJoinPool forkJoin;
-
-
     public CoroutinesKMeans(final int dimension) {
         this.dimension = dimension;
         // Try to (roughly) fit fork data into half the L2 cache.
         this.forkThreshold = forkThreshold(dimension, (256 / 2) * 1024);
-        this.forkJoin = new ForkJoinPool();
     }
-
 
     private int forkThreshold(final int dimension, final int sizeLimit) {
         final int doubleSize = 8 + Double.BYTES;
@@ -43,20 +43,24 @@ public final class CoroutinesKMeans {
         return sizeLimit / (elementSize + pointerSize);
     }
 
-
     public List<Double[]> run(
             final int clusterCount, final List <Double[]> data, final int iterationCount
     ) throws InterruptedException, ExecutionException {
         List<Double[]> centroids = randomSample(clusterCount, data, new Random(100));
         for (int iteration = 0; iteration < iterationCount; iteration++) {
-            final AssignmentTask assignmentTask = new AssignmentTask(data, centroids);
-            final UpdateTask updateTask = new UpdateTask(forkJoin.invoke(assignmentTask));
-            final Map<Double[], List<Double[]>> clusters = forkJoin.invoke(updateTask);
+            var graph = Graph.create();
+            var assignmentChan = new AssignmentTaskBuilder(graph, data, centroids).build();
+            graph.build();
+            var assignmentResult = assignmentChan.receive().value();
+
+            graph = Graph.create();
+            var updateChan = new UpdateTaskBuilder(graph, assignmentResult).build();
+            graph.build();
+            var clusters = updateChan.receive().value();
 
             centroids = new ArrayList<>(clusters.keySet());
         }
 
-        forkJoin.awaitQuiescence(1, TimeUnit.SECONDS);
         return centroids;
     }
 
@@ -68,32 +72,7 @@ public final class CoroutinesKMeans {
                 .mapToObj(data::get).collect(Collectors.toList());
     }
 
-
-    static List<Double[]> generateData(
-            final int count, final int dimension, final int clusterCount
-    ) {
-        // Create random generators for individual dimensions.
-        final Random[] randoms = IntStream.range(0, dimension).mapToObj(
-                d -> new Random  (1 + 2 * d)
-        ).toArray(Random[]::new);
-
-        // Generate random data for all dimensions.
-        return IntStream.range(0, count).mapToObj(i -> {
-            return IntStream.range(0, dimension).mapToObj(d ->
-                    (((i + (1 + 2 * d)) % clusterCount) * 1.0 / clusterCount) + randoms[d].nextDouble() * 0.5
-            ).toArray(Double[]::new);
-        }).collect(Collectors.toList());
-    }
-
-
     public void tearDown() {
-        try {
-            forkJoin.shutdown();
-            forkJoin.awaitTermination(1, TimeUnit.SECONDS);
-
-        } catch (final InterruptedException ie) {
-            throw new RuntimeException (ie);
-        }
     }
 
 
@@ -117,90 +96,91 @@ public final class CoroutinesKMeans {
         return result;
     }
 
-    //
 
-    abstract class RangedTask<V> extends RecursiveTask<V> {
+    abstract class RangedTaskGraphBuilder<T> {
+        Graph graph;
+        int fromInclusive;
+        int toExclusive;
+        int taskSize;
+        int forkThreshold;
 
-        protected final int fromInclusive;
-
-        protected final int toExclusive;
-
-        protected final int taskSize;
-
-
-        protected RangedTask(
-                final int fromInclusive, final int toExclusive
+        RangedTaskGraphBuilder(
+                Graph graph,
+                int fromInclusive,
+                int toExclusive,
+                int forkThreshold
         ) {
+            this.graph = graph;
             this.fromInclusive = fromInclusive;
             this.toExclusive = toExclusive;
             this.taskSize = toExclusive - fromInclusive;
+            this.forkThreshold = forkThreshold;
         }
 
-
-        @Override
-        protected V compute() {
-            if (taskSize < forkThreshold()) {
-                return computeDirectly();
-
+        ReceiveChannel<T> build() {
+            if (taskSize < forkThreshold) {
+                var compResult = graph.<T>channel(1);
+                graph.coroutine(new Coroutine(List.of(), List.of(compResult)) {
+                    @Override
+                    protected void run() {
+                        var result = compute(fromInclusive, toExclusive);
+                        compResult.send(result);
+                    }
+                });
+                return compResult;
             } else {
-                final int middle = fromInclusive + taskSize / 2;
-                final ForkJoinTask<V> leftTask = createSubtask(fromInclusive, middle).fork();
-                final ForkJoinTask<V> rightTask = createSubtask(middle, toExclusive).fork();
-                return combineResults(leftTask.join(), rightTask.join());
+                var middle = fromInclusive + taskSize / 2;
+                var left = subgraph(fromInclusive, middle).build();
+                var right = subgraph(middle, toExclusive).build();
+                var both = graph.join(left, right);
+                var aggResult = graph.<T>channel(1);
+                graph.coroutine(new CoMap<Pair<T, T>, T>(pair -> aggregate(pair.first(), pair.second()), both, aggResult));
+                return aggResult;
             }
         }
 
-        //
-
-        protected abstract int forkThreshold();
-
-        protected abstract V computeDirectly();
-
-        protected abstract ForkJoinTask<V> createSubtask(
-                final int fromInclusive, final int toExclusive
-        );
-
-        protected abstract V combineResults(final V left, final V right);
+        abstract RangedTaskGraphBuilder<T> subgraph(int fromInclusive, int toExclusive);
+        abstract T compute(int fromInclusive, int toExclusive);
+        abstract T aggregate(T x, T y);
     }
 
     //
 
-    final class AssignmentTask extends RangedTask<Map<Double[], List<Double[]>>> {
-
+    class AssignmentTaskBuilder extends RangedTaskGraphBuilder<Map<Double[], List<Double[]>>> {
         private final List<Double[]> data;
 
         private final List<Double[]> centroids;
 
-
-        public AssignmentTask(
-                final List<Double[]> data, final List<Double[]> centroids
+        AssignmentTaskBuilder(
+                Graph graph,
+                int fromInclusive,
+                int toExclusive,
+                List<Double[]> data,
+                List<Double[]> centroids
         ) {
-            this(data, centroids, 0, data.size());
-        }
-
-
-        private AssignmentTask(
-                final List<Double[]> data, final List<Double[]> centroids,
-                final int fromInclusive, final int toExclusive
-        ) {
-            super(fromInclusive, toExclusive);
+            super(graph, fromInclusive, toExclusive, CoroutinesKMeans.this.forkThreshold);
             this.data = data;
             this.centroids = centroids;
         }
 
-        //
-
-        @Override
-        protected int forkThreshold() {
-            return forkThreshold;
+        AssignmentTaskBuilder(Graph graph, List<Double[]> data, List<Double[]> centroids) {
+            this(graph, 0, data.size(), data, centroids);
         }
 
+        @Override
+        RangedTaskGraphBuilder<Map<Double[], List<Double[]>>> subgraph(int fromInclusive, int toExclusive) {
+            return new AssignmentTaskBuilder(graph, fromInclusive, toExclusive, data, centroids);
+        }
 
         @Override
-        protected Map<Double[], List<Double[]>> computeDirectly() {
+        Map<Double[], List<Double[]>> compute(int fromInclusive, int toExclusive) {
             return collectClusters(findNearestCentroid());
         }
 
+        @Override
+        Map<Double[], List<Double[]>> aggregate(Map<Double[], List<Double[]>> x, Map<Double[], List<Double[]>> y) {
+            return merge(x, y);
+        }
 
         private Map<Double[], List<Double[]>> collectClusters(final int[] centroidIndices) {
             final Map<Double[], List<Double[]>> result = new HashMap<>();
@@ -249,63 +229,52 @@ public final class CoroutinesKMeans {
 
             return result;
         }
-
-
-        @Override
-        protected ForkJoinTask<Map<Double[], List<Double[]>>> createSubtask(
-                final int fromInclusive, final int toExclusive
-        ) {
-            return new AssignmentTask(data, centroids, fromInclusive, toExclusive);
-        }
-
-
-        @Override
-        protected Map<Double[], List<Double[]>> combineResults(
-                final Map<Double[], List<Double[]>> left, final Map<Double[], List<Double[]>> right
-        ) {
-            return merge(left, right);
-        }
-
     }
 
     //
 
-    final class UpdateTask extends RangedTask<Map<Double[], List<Double[]>>> {
+    class UpdateTaskBuilder extends RangedTaskGraphBuilder<Map<Double[], List<Double[]>>> {
 
         private final List<List<Double[]>> clusters;
 
-
-        public UpdateTask(final Map<Double[], List<Double[]>> clusters) {
-            this(new ArrayList<>(clusters.values()));
-        }
-
-
-        public UpdateTask(final List<List<Double[]>> clusters) {
-            this(clusters, 0, clusters.size());
-        }
-
-
-        private UpdateTask(
-                final List<List<Double[]>> clusters,
-                final int fromInclusive, final int toExclusive
+        UpdateTaskBuilder(
+                Graph graph,
+                Map<Double[], List<Double[]>> clusters
         ) {
-            super(fromInclusive, toExclusive);
+            this(graph, new ArrayList<>(clusters.values()));
+        }
+
+        UpdateTaskBuilder(
+                Graph graph,
+                List<List<Double[]>> clusters
+        ) {
+            this(graph, 0, clusters.size(), clusters);
+        }
+
+        UpdateTaskBuilder(
+                Graph graph,
+                int fromInclusive,
+                int toExclusive,
+                List<List<Double[]>> clusters
+        ) {
+            super(graph, fromInclusive, toExclusive, 2);
             this.clusters = clusters;
         }
 
-        //
-
         @Override
-        protected int forkThreshold() {
-            return 2;
+        RangedTaskGraphBuilder<Map<Double[], List<Double[]>>> subgraph(int fromInclusive, int toExclusive) {
+            return new UpdateTaskBuilder(graph, fromInclusive, toExclusive, clusters);
         }
 
-
         @Override
-        protected Map<Double[], List<Double[]>> computeDirectly() {
+        Map<Double[], List<Double[]>> compute(int fromInclusive, int toExclusive) {
             return computeClusterAverages();
         }
 
+        @Override
+        Map<Double[], List<Double[]>> aggregate(Map<Double[], List<Double[]>> x, Map<Double[], List<Double[]>> y) {
+            return merge(x, y);
+        }
 
         private Map<Double[], List<Double[]>> computeClusterAverages() {
             final Map<Double[], List<Double[]>> result = new HashMap<>();
@@ -326,8 +295,10 @@ public final class CoroutinesKMeans {
 
 
         private double[] average(final List<Double[]> elements) {
-            final VectorSumTask sumTask = new VectorSumTask(elements);
-            final double[] vectorSums = getPool().invoke(sumTask);
+            var subgraph = Graph.create();
+            var sumChan = new VectorSumTaskBuilder(subgraph, elements).build();
+            subgraph.build();
+            final double[] vectorSums = sumChan.receive().value();
             return div(vectorSums, elements.size());
         }
 
@@ -340,58 +311,42 @@ public final class CoroutinesKMeans {
 
             return result;
         }
-
-
-        @Override
-        protected ForkJoinTask<Map<Double[], List<Double[]>>> createSubtask(
-                final int fromInclusive, final int toExclusive
-        ) {
-            return new UpdateTask(clusters, fromInclusive, toExclusive);
-        }
-
-
-        @Override
-        protected Map<Double[], List<Double[]>> combineResults(
-                final Map<Double[], List<Double[]>> left, final Map<Double[], List<Double[]>> right
-        ) {
-            return merge(left, right);
-        }
-
     }
 
     //
 
-    final class VectorSumTask extends RangedTask<double[]> {
+    class VectorSumTaskBuilder extends RangedTaskGraphBuilder<double[]> {
 
         private final List<Double[]> data;
 
-
-        public VectorSumTask(final List<Double[]> data) {
-            this(data, 0, data.size());
+        VectorSumTaskBuilder(Graph graph, List<Double[]> data) {
+            this(graph, 0, data.size(), data);
         }
 
-
-        private VectorSumTask(
-                final List<Double[]> data,
-                final int fromInclusive, final int toExclusive
+        VectorSumTaskBuilder(
+                Graph graph,
+                int fromInclusive,
+                int toExclusive,
+                List<Double[]> data
         ) {
-            super(fromInclusive, toExclusive);
+            super(graph, fromInclusive, toExclusive, CoroutinesKMeans.this.forkThreshold);
             this.data = data;
         }
 
-        //
-
         @Override
-        protected int forkThreshold() {
-            return forkThreshold;
+        RangedTaskGraphBuilder<double[]> subgraph(int fromInclusive, int toExclusive) {
+            return new VectorSumTaskBuilder(graph, fromInclusive, toExclusive, data);
         }
 
-
         @Override
-        protected double[] computeDirectly() {
+        double[] compute(int fromInclusive, int toExclusive) {
             return vectorSum();
         }
 
+        @Override
+        double[] aggregate(double[] x, double[] y) {
+            return add(x, y);
+        }
 
         private double[] vectorSum() {
             final double[] result = new double[dimension];
@@ -403,25 +358,11 @@ public final class CoroutinesKMeans {
             return result;
         }
 
-
         private void accumulate(final Double[] val, final double[] acc) {
             for (int i = 0; i < dimension; i++) {
                 acc[i] += val[i];
             }
         }
-
-
-        @Override
-        protected ForkJoinTask<double[]> createSubtask(int fromInclusive, int toExclusive) {
-            return new VectorSumTask(data, fromInclusive, toExclusive);
-        }
-
-
-        @Override
-        protected double[] combineResults(final double[] left, final double[] right) {
-            return add(left, right);
-        }
-
 
         private double[] add(final double[] x, final double[] y) {
             final double[] result = new double[dimension];
@@ -432,7 +373,5 @@ public final class CoroutinesKMeans {
 
             return result;
         }
-
     }
-
 }
