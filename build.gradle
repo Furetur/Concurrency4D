@@ -4,6 +4,11 @@ plugins {
     id 'me.champeau.jmh' version '0.7.1'
 }
 
+java {
+    sourceCompatibility = 19
+    targetCompatibility = 19
+}
+
 group 'org.example'
 version '1.0-SNAPSHOT'
 
