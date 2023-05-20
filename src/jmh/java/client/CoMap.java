@@ -1,4 +1,4 @@
-package benchmarks;
+package client;
 
 import me.furetur.concurrency4d.*;
 

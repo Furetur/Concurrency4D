@@ -1,4 +1,4 @@
-package benchmarks;
+package client;
 
 
 import me.furetur.concurrency4d.Coroutine;
@@ -6,19 +6,9 @@ import me.furetur.concurrency4d.Graph;
 import me.furetur.concurrency4d.ReceiveChannel;
 import me.furetur.concurrency4d.data.Pair;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.RecursiveTask;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 
 public final class CoroutinesKMeans {
