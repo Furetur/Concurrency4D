@@ -21,9 +21,9 @@ public class KMeansBenchmark {
         data = JavaKMeans.generateData(VECTOR_LENGTH, DIMENSION, CLUSTER_COUNT);
     }
 
-    @Warmup(iterations = 20)
+    @Warmup(iterations = 5)
     @Measurement(iterations = 10)
-    @Benchmark
+//    @Benchmark
     public List<Double[]> javaForkJoin() throws ExecutionException, InterruptedException {
         var benchmark = new JavaKMeans(DIMENSION);
         var res = benchmark.run(CLUSTER_COUNT, data, ITERATION_COUNT);
@@ -31,13 +31,35 @@ public class KMeansBenchmark {
         return res;
     }
 
-    @Warmup(iterations = 20)
+    @Warmup(iterations = 5)
     @Measurement(iterations = 10)
-    @Benchmark
+//    @Benchmark
     public List<Double[]> concurrency4d() throws ExecutionException, InterruptedException {
         var bench = new CoroutinesKMeans(DIMENSION);
         return bench.run(CLUSTER_COUNT, data, ITERATION_COUNT);
     }
 
+    @Warmup(iterations = 5)
+    @Measurement(iterations = 10)
+    @Benchmark
+    public List<Double[]> concurrency4dEager() throws ExecutionException, InterruptedException {
+        var bench = new CoroutinesEagerKMeans(DIMENSION);
+        return bench.run(CLUSTER_COUNT, data, ITERATION_COUNT);
+    }
 
+//    @Warmup(iterations = 20)
+//    @Measurement(iterations = 10)
+////    @Benchmark
+//    public List<Double[]> loom() throws ExecutionException, InterruptedException {
+//        var bench = new LoomKMeans(DIMENSION);
+//        return bench.run(CLUSTER_COUNT, data, ITERATION_COUNT);
+//    }
+//
+//    @Warmup(iterations = 20)
+//    @Measurement(iterations = 10)
+////    @Benchmark
+//    public List<Double[]> loomQueue() throws ExecutionException, InterruptedException {
+//        var bench = new LoomQueueKMeans(DIMENSION);
+//        return bench.run(CLUSTER_COUNT, data, ITERATION_COUNT);
+//    }
 }

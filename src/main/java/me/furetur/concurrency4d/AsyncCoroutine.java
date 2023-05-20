@@ -30,7 +30,7 @@ public abstract class AsyncCoroutine {
         }
     }
 
-    void schedule() {
+    public void schedule() {
         var wasNotAlive = isAlive.compareAndSet(false, true);
         if (wasNotAlive) {
             // the coroutine is still NOT ALIVE

@@ -78,6 +78,8 @@ jmh {
 
     ]
 
+    //  profilers = ['jfr']
+
     jmhVersion = '1.36' // Specifies JMH version
     duplicateClassesStrategy = DuplicatesStrategy.EXCLUDE
 }
