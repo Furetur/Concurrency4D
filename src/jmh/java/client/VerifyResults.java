@@ -29,7 +29,7 @@ public class VerifyResults {
     }
 
     public static List<Double[]> coroutines(List<Double[]> data) throws ExecutionException, InterruptedException {
-        var bench = new CoroutinesKMeans(DIMENSION);
+        var bench = new CoroutinesEagerKMeans(DIMENSION);
         return bench.run(CLUSTER_COUNT, data, ITERATION_COUNT);
     }
 

@@ -6,7 +6,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 final class SyncOneChannelImpl<T> implements InternalChannel<T> {
     private final long _id = Utils.nextId();
-    private T data = null;
+    private Message<T> data = null;
+    private volatile boolean isClosed = false;
     private AsyncCoroutine sender;
     private AsyncCoroutine receiver;
 
@@ -29,6 +30,8 @@ final class SyncOneChannelImpl<T> implements InternalChannel<T> {
 
     @Override
     public Message<T> receive() {
+        if (isClosed) return Message.close();
+
         try {
             lock.lock();
 
@@ -37,10 +40,10 @@ final class SyncOneChannelImpl<T> implements InternalChannel<T> {
                 notEmptyOrClosed.await();
             }
 
-            var value = data;
+            var message = data;
             data = null;
             notFullOrClosed.signal();
-            return Message.value(value);
+            return message;
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
@@ -50,6 +53,15 @@ final class SyncOneChannelImpl<T> implements InternalChannel<T> {
 
     @Override
     public void cancel() {
+        try {
+            lock.lock();
+
+            isClosed = true;
+            data = null;
+            notFullOrClosed.signal();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -62,6 +74,19 @@ final class SyncOneChannelImpl<T> implements InternalChannel<T> {
 
     @Override
     public boolean send(T value) {
+        return sendMessage(Message.value(value));
+    }
+
+    @Override
+    public boolean close() {
+        var res = sendMessage(Message.close());
+        isClosed = true;
+        return res;
+    }
+
+    private boolean sendMessage(Message<T> msg) {
+        if (isClosed) return false;
+
         try {
             lock.lock();
 
@@ -70,7 +95,7 @@ final class SyncOneChannelImpl<T> implements InternalChannel<T> {
                 notFullOrClosed.await();
             }
 
-            data = value;
+            data = msg;
             schedule(receiver);
             notEmptyOrClosed.signal();
             return true;
@@ -81,28 +106,9 @@ final class SyncOneChannelImpl<T> implements InternalChannel<T> {
         }
     }
 
-    @Override
-    public boolean close() {
-        return true;
-    }
-
     private static void schedule(AsyncCoroutine coroutine) {
         if (coroutine != null) {
             coroutine.schedule();
         }
-    }
-
-    //
-
-    private final State<T> emptyState = (State<T>) State.EMPTY;
-    private final State<T> closedState = (State<T>) State.CLOSED;
-
-    static <T> State<T> valueState(T value) {
-        return new State<>(value, false);
-    }
-
-    record State<T>(T value, boolean closed) {
-        private static State<?> EMPTY = new State<>(null, false);
-        private static State<?> CLOSED = new State<>(null, true);
     }
 }
