@@ -1,15 +1,8 @@
-package client;
+package me.furetur.concurrency4d;
 
-
-import me.furetur.concurrency4d.Coroutine;
-import me.furetur.concurrency4d.Graph;
-import me.furetur.concurrency4d.ReceiveChannel;
-import me.furetur.concurrency4d.SendChannel;
-import me.furetur.concurrency4d.data.Pair;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -112,27 +105,31 @@ public final class CoroutinesKMeans {
         ReceiveChannel<T> build() {
             if (taskSize < forkThreshold) {
                 var compResult = graph.<T>channel(1);
-                graph.coroutine(new Coroutine(List.of(), List.of(compResult)) {
+                var coro = new Coroutine(List.of(), List.of(compResult)) {
                     @Override
                     protected void run() {
                         var result = compute(fromInclusive, toExclusive);
                         compResult.send(result);
                     }
-                });
+                };
+                graph.coroutine(coro);
+                coro.schedule();
                 return compResult;
             } else {
                 var middle = fromInclusive + taskSize / 2;
                 var left = subgraph(fromInclusive, middle).build();
                 var right = subgraph(middle, toExclusive).build();
                 var aggResult = graph.<T>channel(1);
-                graph.coroutine(new Coroutine(List.of(left, right), List.of(aggResult)) {
+                var coro = new Coroutine(List.of(left, right), List.of(aggResult)) {
                     @Override
                     protected void run() {
                         var l = left.receive().value();
                         var r = right.receive().value();
                         aggResult.send(aggregate(l, r));
                     }
-                });
+                };
+                graph.coroutine(coro);
+                coro.schedule();
                 return aggResult;
             }
         }

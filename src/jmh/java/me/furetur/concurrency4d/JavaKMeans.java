@@ -1,4 +1,4 @@
-package client;
+package me.furetur.concurrency4d;
 
 
 import java.util.*;

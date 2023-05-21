@@ -1,6 +1,4 @@
-package client;
-
-import me.furetur.concurrency4d.Log;
+package me.furetur.concurrency4d;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -29,7 +27,7 @@ public class VerifyResults {
     }
 
     public static List<Double[]> coroutines(List<Double[]> data) throws ExecutionException, InterruptedException {
-        var bench = new CoroutinesEagerKMeans(DIMENSION);
+        var bench = new CoroutinesKMeans(DIMENSION);
         return bench.run(CLUSTER_COUNT, data, ITERATION_COUNT);
     }
 
