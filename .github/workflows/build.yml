@@ -35,7 +35,7 @@ jobs:
           java-version: '19'
 
       - name: Build the Project
-        run: ./gradlew test
+        run: DEBUG=true ./gradlew test
 
       - name: Generate JaCoCo Badge
         id: jacoco
