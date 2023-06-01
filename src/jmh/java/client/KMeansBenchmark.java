@@ -21,8 +21,8 @@ public class KMeansBenchmark {
         data = JavaKMeans.generateData(VECTOR_LENGTH, DIMENSION, CLUSTER_COUNT);
     }
 
-    @Warmup(iterations = 20)
-    @Measurement(iterations = 10)
+    @Warmup(iterations = 1)
+    @Measurement(iterations = 1)
     @Benchmark
     public List<Double[]> javaForkJoin() throws ExecutionException, InterruptedException {
         var benchmark = new JavaKMeans(DIMENSION);
@@ -31,8 +31,8 @@ public class KMeansBenchmark {
         return res;
     }
 
-    @Warmup(iterations = 20)
-    @Measurement(iterations = 10)
+    @Warmup(iterations = 1)
+    @Measurement(iterations = 1)
     @Benchmark
     public List<Double[]> concurrency4d() throws ExecutionException, InterruptedException {
         var bench = new CoroutinesKMeans(DIMENSION);

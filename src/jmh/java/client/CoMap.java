@@ -1,6 +1,6 @@
 package client;
 
-import me.furetur.concurrency4d.*;
+import com.github.furetur.concurrency4d.*;
 
 import java.util.List;
 import java.util.function.Function;

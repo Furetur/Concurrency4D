@@ -1,10 +1,7 @@
 package client;
 
-
-import me.furetur.concurrency4d.Coroutine;
-import me.furetur.concurrency4d.Graph;
-import me.furetur.concurrency4d.ReceiveChannel;
-import me.furetur.concurrency4d.data.Pair;
+import com.github.furetur.concurrency4d.*;
+import com.github.furetur.concurrency4d.data.Pair;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
