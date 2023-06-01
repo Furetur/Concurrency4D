@@ -1,3 +1,5 @@
+import me.champeau.jmh.JmhBytecodeGeneratorTask
+
 plugins {
     id 'java'
     id 'jacoco'
@@ -19,15 +21,15 @@ dependencies {
     jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.36'
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.compilerArgs += ["--enable-preview"]
 }
 
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
     jvmArgs += ["--enable-preview"]
 }
 
-tasks.withType(JavaExec) {
+tasks.withType(JavaExec).configureEach {
     jvmArgs += ['--enable-preview']
 }
 
@@ -87,6 +89,6 @@ jmh {
     duplicateClassesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-tasks.withType(me.champeau.jmh.JmhBytecodeGeneratorTask).configureEach {
+tasks.withType(JmhBytecodeGeneratorTask).configureEach {
     jvmArgs.set(["--enable-preview"])
 }
