@@ -1,4 +1,4 @@
-package me.furetur.concurrency4d;
+package com.github.furetur.concurrency4d;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;

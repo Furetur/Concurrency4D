@@ -1,4 +1,4 @@
-package me.furetur.concurrency4d;
+package com.github.furetur.concurrency4d;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
