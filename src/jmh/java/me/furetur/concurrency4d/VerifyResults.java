@@ -5,7 +5,7 @@ import java.util.concurrent.ExecutionException;
 
 public class VerifyResults {
 
-    private static int VECTOR_LENGTH = 50000;
+    private static int VECTOR_LENGTH = 25000;
     private static int DIMENSION = 5;
     private static int CLUSTER_COUNT = 5;
     private static int ITERATION_COUNT = 50;

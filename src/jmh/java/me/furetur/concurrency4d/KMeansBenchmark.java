@@ -23,6 +23,7 @@ public class KMeansBenchmark {
 
     @Warmup(iterations = 20)
     @Measurement(iterations = 10)
+    @Benchmark
     public List<Double[]> javaForkJoin() throws ExecutionException, InterruptedException {
         var benchmark = new JavaKMeans(DIMENSION);
         var res = benchmark.run(CLUSTER_COUNT, data, ITERATION_COUNT);
