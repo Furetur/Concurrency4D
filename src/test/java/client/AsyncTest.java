@@ -15,6 +15,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Timeout(value = 10)
 public class AsyncTest extends CommonTests<AsyncGraph> {
+
+    AsyncTest() {
+        super(1);
+    }
+
     @Override
     protected AsyncGraph createGraph() {
         return AsyncGraph.create();

@@ -37,6 +37,7 @@ class ThreadInfo {
         LockSupport.unpark(thread);
     }
 
+    @CoverageExcludeGenerated
     private String printThreadFullState() {
         var s = new StringBuilder();
         s.append("\tTHREAD: ").append(thread).append("\n");

@@ -15,8 +15,13 @@ import static org.junit.jupiter.api.Assertions.*;
 public abstract class CommonTests<T extends Graph> extends CommonLogging {
 
     protected T graph;
+    protected int CHAN_SIZE;
 
     abstract protected T createGraph();
+
+    CommonTests(int channelSize) {
+        CHAN_SIZE = channelSize;
+    }
 
     @BeforeEach
     void setUp() {
@@ -25,10 +30,10 @@ public abstract class CommonTests<T extends Graph> extends CommonLogging {
 
     @Test
     void range() {
-        var range = graph.<Long>channel();
+        var range = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoRange(range, 10));
 
-        var quit = graph.<List<Long>>channel();
+        var quit = graph.<List<Long>>channel(CHAN_SIZE);
         graph.coroutine(new CoCollector<>(range, quit));
 
         graph.build();
@@ -43,18 +48,18 @@ public abstract class CommonTests<T extends Graph> extends CommonLogging {
 
     @RepeatedTest(1000)
     void joinRanges() {
-        var range1 = graph.<Long>channel();
+        var range1 = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoRange(range1, 10));
 
-        var range2 = graph.<Long>channel();
+        var range2 = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoRange(range2, 10));
 
-        var mapped = graph.<Long>channel();
+        var mapped = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoMap<>(i -> i * i, range2, mapped));
 
         var res = graph.join(range1, mapped);
 
-        var quit = graph.<List<Pair<Long, Long>>>channel();
+        var quit = graph.<List<Pair<Long, Long>>>channel(CHAN_SIZE);
         graph.coroutine(new CoCollector<>(res, quit));
 
         graph.build();
@@ -72,12 +77,12 @@ public abstract class CommonTests<T extends Graph> extends CommonLogging {
         var range1 = graph.<Long>channel();
         graph.coroutine(new CoRange(range1, 10));
 
-        var range2 = graph.<Long>channel();
+        var range2 = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoRange(range2, 10));
 
         var res = graph.join(range1, range2);
 
-        var quit = graph.<List<Pair<Long, Long>>>channel();
+        var quit = graph.<List<Pair<Long, Long>>>channel(CHAN_SIZE);
         graph.coroutine(new CoCollector<>(res, quit));
 
         graph.build();
@@ -92,18 +97,18 @@ public abstract class CommonTests<T extends Graph> extends CommonLogging {
 
     @RepeatedTest(100)
     void joinRangesViceVersa() {
-        var range1 = graph.<Long>channel();
+        var range1 = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoRange(range1, 10));
 
-        var range2 = graph.<Long>channel();
+        var range2 = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoRange(range2, 10));
 
-        var mapped = graph.<Long>channel();
+        var mapped = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoMap<>(i -> i * i, range2, mapped));
 
         var res = graph.join(mapped, range1);
 
-        var quit = graph.<List<Pair<Long, Long>>>channel();
+        var quit = graph.<List<Pair<Long, Long>>>channel(CHAN_SIZE);
         graph.coroutine(new CoCollector<>(res, quit));
 
         graph.build();
@@ -118,7 +123,7 @@ public abstract class CommonTests<T extends Graph> extends CommonLogging {
 
     @Test
     void joinShouldPromoteClose() {
-        var range = graph.<Long>channel();
+        var range = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoRange(range, 10));
 
         var close = graph.channel(1);
@@ -146,8 +151,8 @@ public abstract class CommonTests<T extends Graph> extends CommonLogging {
 
     @Test
     void shouldCancel() {
-        var cancel = graph.<Boolean>channel();
-        var count = graph.<Long>channel();
+        var cancel = graph.<Boolean>channel(CHAN_SIZE);
+        var count = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoCancellable(cancel, count));
 
         graph.build();
@@ -158,8 +163,8 @@ public abstract class CommonTests<T extends Graph> extends CommonLogging {
 
     @Test
     void doubleCancel() {
-        var cancel = graph.<Boolean>channel();
-        var count = graph.<Long>channel();
+        var cancel = graph.<Boolean>channel(CHAN_SIZE);
+        var count = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoCancellable(cancel, count));
 
         graph.build();
@@ -171,12 +176,12 @@ public abstract class CommonTests<T extends Graph> extends CommonLogging {
 
     @Test
     void shouldCancelBoth() {
-        var cancel1 = graph.<Boolean>channel();
-        var count1 = graph.<Long>channel();
+        var cancel1 = graph.<Boolean>channel(CHAN_SIZE);
+        var count1 = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoCancellable(cancel1, count1));
 
-        var cancel2 = graph.<Boolean>channel();
-        var count2 = graph.<Long>channel();
+        var cancel2 = graph.<Boolean>channel(CHAN_SIZE);
+        var count2 = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoCancellable(cancel2, count2));
 
         var cancel = graph.join(cancel1, cancel2);
@@ -190,8 +195,8 @@ public abstract class CommonTests<T extends Graph> extends CommonLogging {
 
     @Test
     void cancelSendBridge() {
-        var in = graph.<Long>channel();
-        var out = graph.<Long>channel();
+        var in = graph.<Long>channel(CHAN_SIZE);
+        var out = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoBreaker<>(100L, in, out));
         graph.build();
 
@@ -209,8 +214,8 @@ public abstract class CommonTests<T extends Graph> extends CommonLogging {
 
     @Test
     void graphWithInAndOut() {
-        var in = graph.<Long>channel();
-        var out = graph.<Long>channel();
+        var in = graph.<Long>channel(CHAN_SIZE);
+        var out = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoMap<>(i -> i * i, in, out));
         graph.build();
 
@@ -220,17 +225,17 @@ public abstract class CommonTests<T extends Graph> extends CommonLogging {
 
     @Test
     void secondOrderJoin() {
-        var range1 = graph.<Long>channel();
+        var range1 = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoRange(range1, 10));
 
-        var range2 = graph.<Long>channel();
+        var range2 = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoRange(range2, 10));
 
-        var range3 = graph.<Long>channel();
+        var range3 = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoRange(range3, 10));
 
         var join = graph.join(graph.join(range1, range2), range3);
-        var res = graph.<List<Pair<Pair<Long, Long>, Long>>>channel();
+        var res = graph.<List<Pair<Pair<Long, Long>, Long>>>channel(CHAN_SIZE);
         graph.coroutine(new CoCollector<>(join, res));
 
         graph.build();
@@ -244,7 +249,7 @@ public abstract class CommonTests<T extends Graph> extends CommonLogging {
 
     @Test
     void sendIntoClosedChannelDoesNotBlock() {
-        var chan = graph.channel();
+        var chan = graph.channel(CHAN_SIZE);
         graph.build();
 
         chan.close();
@@ -253,7 +258,7 @@ public abstract class CommonTests<T extends Graph> extends CommonLogging {
 
     @Test
     void closeReturnsTrue() {
-        var chan = graph.channel();
+        var chan = graph.channel(CHAN_SIZE);
         graph.build();
 
         var ok = chan.close();
@@ -262,7 +267,7 @@ public abstract class CommonTests<T extends Graph> extends CommonLogging {
 
     @Test
     void secondCloseReturnsTrue() {
-        var chan = graph.channel();
+        var chan = graph.channel(CHAN_SIZE);
         graph.build();
 
         chan.close();
@@ -272,10 +277,10 @@ public abstract class CommonTests<T extends Graph> extends CommonLogging {
 
     @Test
     void joinCancelsOneChannelIfOtherGetsClosed() {
-        var close = graph.channel();
+        var close = graph.channel(CHAN_SIZE);
 
-        var shouldBeCancelled = graph.<Boolean>channel();
-        var count = graph.<Long>channel();
+        var shouldBeCancelled = graph.<Boolean>channel(CHAN_SIZE);
+        var count = graph.<Long>channel(CHAN_SIZE);
         graph.coroutine(new CoCancellable(shouldBeCancelled, count));
 
         var join = graph.join(close, shouldBeCancelled);

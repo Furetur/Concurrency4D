@@ -15,6 +15,7 @@ class AsyncJoin<A, B> implements InternalAsyncReceiveChannel<Pair<A, B>> {
         this.bChannel = bChannel;
     }
 
+    @CoverageExcludeGenerated
     @Override
     public long id() {
         return -1;
@@ -100,6 +101,7 @@ class AsyncJoin<A, B> implements InternalAsyncReceiveChannel<Pair<A, B>> {
         bChannel.cancel();
     }
 
+    @CoverageExcludeGenerated
     @Override
     public String toString() {
         return "Join(" + aChannel + ", " + bChannel + ")";
