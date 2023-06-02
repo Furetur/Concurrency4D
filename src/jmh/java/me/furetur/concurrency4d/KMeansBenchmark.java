@@ -1,4 +1,4 @@
-package client;
+package me.furetur.concurrency4d;
 
 import org.openjdk.jmh.annotations.*;
 import java.util.List;
@@ -38,6 +38,4 @@ public class KMeansBenchmark {
         var bench = new CoroutinesKMeans(DIMENSION);
         return bench.run(CLUSTER_COUNT, data, ITERATION_COUNT);
     }
-
-
 }

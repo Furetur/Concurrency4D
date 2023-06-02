@@ -9,7 +9,11 @@ public class SyncGraphImpl implements Graph {
 
     @Override
     public <T> Channel<T> channel(int size) {
-        return new SyncChannelImpl<>(size);
+        if (size == 1) {
+            return new SyncOneChannelImpl<>();
+        } else {
+            return new SyncChannelImpl<>(size);
+        }
     }
 
     @Override

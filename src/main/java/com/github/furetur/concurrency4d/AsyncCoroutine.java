@@ -43,13 +43,16 @@ public abstract class AsyncCoroutine {
             t.setName(this.toString());
             t.start();
         } else {
-            var t = threadInfo.get();
-            if (t != null) {
-                // the coroutine is ALIVE
-                log.debug("Sending unpark");
-                t.unpark();
-            }
-            // if t == null then the coroutine is STARTING
+            tryUnpark();
+        }
+    }
+
+    void tryUnpark() {
+        var t = threadInfo.get();
+        if (t != null) {
+            // the coroutine is ALIVE
+            log.debug("Sending unpark");
+            t.unpark();
         }
     }
 

@@ -10,6 +10,11 @@ plugins {
 group 'com.github.furetur'
 version '1.0-SNAPSHOT'
 
+java {
+    sourceCompatibility = 19
+    targetCompatibility = 19
+}
+
 repositories {
     mavenCentral()
 }
@@ -34,6 +39,9 @@ tasks.withType(JavaExec).configureEach {
 }
 
 test {
+    if (!System.getenv().containsKey("DEBUG")) {
+        environment "DEBUG", "true"
+    }
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 }
@@ -84,6 +92,8 @@ jmh {
 //            '-XX:CompileCommand="inline,com.huawei.simplelib.SCoSum::cont"',
 
     ]
+
+    //  profilers = ['jfr']
 
     jmhVersion = '1.36' // Specifies JMH version
     duplicateClassesStrategy = DuplicatesStrategy.EXCLUDE

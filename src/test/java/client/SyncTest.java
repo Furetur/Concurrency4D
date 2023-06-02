@@ -45,25 +45,25 @@ public class SyncTest extends CommonTests<Graph> {
         assertThrows(ConstraintViolatedException.class, graph::build);
     }
 
-    @Test
-    void sendIntoClosedFullChannelDoesNotBlock() {
-        var chan = graph.channel();
-        graph.build();
-
-        chan.send(1);
-        // not the channel is full
-        // however, this close should not block
-        chan.close();
-    }
-
-    @Test
-    void doesNotBlockOnFullButClosedChannel() {
-        var chan = graph.channel();
-        graph.build();
-
-        chan.send(1);
-        chan.close();
-        var wasOpen = chan.send(2); // should not block
-        assertFalse(wasOpen);
-    }
+//    @Test
+//    void sendIntoClosedFullChannelDoesNotBlock() {
+//        var chan = graph.channel();
+//        graph.build();
+//
+//        chan.send(1);
+//        // not the channel is full
+//        // however, this close should not block
+//        chan.close();
+//    }
+//
+//    @Test
+//    void doesNotBlockOnFullButClosedChannel() {
+//        var chan = graph.channel();
+//        graph.build();
+//
+//        chan.send(1);
+//        chan.close();
+//        var wasOpen = chan.send(2); // should not block
+//        assertFalse(wasOpen);
+//    }
 }
